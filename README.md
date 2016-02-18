@@ -1,30 +1,6 @@
-# Angular Style Guide
-
-## Angular Team Endorsed
-Special thanks to Igor Minar, lead on the Angular team, for reviewing, contributing feedback, and entrusting me to shepherd this guide.
-
+# Curve Dental Angular Style Guide
 ## Purpose
-*Opinionated Angular style guide for teams by [@john_papa](//twitter.com/john_papa)*
-
-If you are looking for an opinionated style guide for syntax, conventions, and structuring Angular applications, then step right in. These styles are based on my development experience with [Angular](//angularjs.org), presentations, [Pluralsight training courses](http://app.pluralsight.com/author/john-papa) and working in teams.
-
-The purpose of this style guide is to provide guidance on building Angular applications by showing the conventions I use and, more importantly, why I choose them.
-
->If you like this guide, check out my [Angular Patterns: Clean Code](http://jpapa.me/ngclean) course at Pluralsight which is a companion to this guide.
-
-  [![Angular Patterns: Clean Code](https://raw.githubusercontent.com/johnpapa/angular-styleguide/master/assets/ng-clean-code-banner.png)](http://jpapa.me/ngclean)
-
-## Community Awesomeness and Credit
-Never work in a vacuum. I find that the Angular community is an incredible group who are passionate about sharing experiences. As such, a friend and Angular expert Todd Motto and I have collaborated on many styles and conventions. We agree on most, and some we diverge. I encourage you to check out [Todd's guidelines](https://github.com/toddmotto/angular-styleguide) to get a sense for his approach and how it compares.
-
-Many of my styles have been from the many pair programming sessions [Ward Bell](https://twitter.com/wardbell) and I have had. My friend Ward has certainly helped influence the ultimate evolution of this guide.
-
-## See the Styles in a Sample App
-While this guide explains the *what*, *why* and *how*, I find it helpful to see them in practice. This guide is accompanied by a sample application that follows these styles and patterns. You can find the [sample application (named modular) here](https://github.com/johnpapa/ng-demos) in the `modular` folder. Feel free to grab it, clone it, or fork it. [Instructions on running it are in its readme](https://github.com/johnpapa/ng-demos/tree/master/modular).
-
-##Translations
-[Translations of this Angular style guide](https://github.com/johnpapa/angular-styleguide/tree/master/i18n) are maintained by the community and can be found here.
-
+The purpose of this style guide is to provide guidance to Curve developers when building Angular applications.  It is based heavily on John Papa's [Angular Style Guide](https://github.com/johnpapa/angular-styleguide).  The deviations from John Papa's style are generally focused around preparing code for Angular 2.  In some cases they are purely opionions that must be followed for consistency in Curve's Angular applications.
 ## Table of Contents
 
   1. [Single Responsibility](#single-responsibility)
@@ -32,7 +8,6 @@ While this guide explains the *what*, *why* and *how*, I find it helpful to see 
   1. [Modules](#modules)
   1. [Controllers](#controllers)
   1. [Services](#services)
-  1. [Factories](#factories)
   1. [Data Services](#data-services)
   1. [Directives](#directives)
   1. [Resolving Promises](#resolving-promises)
@@ -180,7 +155,7 @@ While this guide explains the *what*, *why* and *how*, I find it helpful to see 
 
       angular
           .module('app')
-          .factory('logger', logger);
+          .service'logger', logger);
 
       function logger() { }
   })();
@@ -191,7 +166,7 @@ While this guide explains the *what*, *why* and *how*, I find it helpful to see 
 
       angular
           .module('app')
-          .factory('storage', storage);
+          .service('storage', storage);
 
       function storage() { }
   })();
@@ -377,9 +352,11 @@ While this guide explains the *what*, *why* and *how*, I find it helpful to see 
 ### controllerAs with vm
 ###### [Style [Y032](#style-y032)]
 
-  - Use a capture variable for `this` when using the `controllerAs` syntax. Choose a consistent variable name such as `vm`, which stands for ViewModel.
+  - Use a capture variable for `this` when using the `controllerAs` syntax. Use the variable name 'vm', which stands for ViewModel, for conistency.
 
   *Why?*: The `this` keyword is contextual and when used within a function inside a controller may change its context. Capturing the context of `this` avoids encountering this problem.
+  
+  *Why?*: The `vm` must appear before every bound variable in the view's template.  A longer variable name may be more expressive but it quickly reduces the readability of the template with boilerplate.  In Angular 2 this problem is resovled as the `vm` is no longer required in controllers or templates.
 
   ```javascript
   /* avoid */
@@ -390,7 +367,7 @@ While this guide explains the *what*, *why* and *how*, I find it helpful to see 
   ```
 
   ```javascript
-  /* recommended */
+  /* required */
   function CustomerController() {
       var vm = this;
       vm.name = {};
@@ -421,18 +398,6 @@ While this guide explains the *what*, *why* and *how*, I find it helpful to see 
           $log.info('vm.title is now %s', current);
       });
   }
-  ```
-
-  Note: When working with larger codebases, using a more descriptive name can help ease cognitive overhead & searchability. Avoid overly verbose names that are cumbersome to type.
-
-  ```html
-  <!-- avoid -->
-  <input ng-model="customerProductItemVm.text">
-  ```
-
-  ```html
-  <!-- recommended -->
-  <input ng-model="productVm.id">
   ```
 
 ### Bindable Members Up Top
@@ -663,12 +628,14 @@ While this guide explains the *what*, *why* and *how*, I find it helpful to see 
   }
   ```
 
-### Keep Controllers Focused
+### Combine Controllers and Views into Components
 ###### [Style [Y037](#style-y037)]
 
-  - Define a controller for a view, and try not to reuse the controller for other views. Instead, move reusable logic to factories and keep the controller simple and focused on its view.
+  - Create a component with a dedicated view and controller.  Define a controller for a view, and do not reuse the controller for other views. Instead, move reusable logic to factories and keep the controller simple and focused on its view.
 
     *Why?*: Reusing controllers with several views is brittle and good end-to-end (e2e) test coverage is required to ensure stability across large applications.
+    
+    *Why?*: Creating components is an easier upgrade path to Angular 2 and, eventually, Web Components.
 
 ### Assigning Controllers
 ###### [Style [Y038](#style-y038)]
@@ -732,7 +699,7 @@ While this guide explains the *what*, *why* and *how*, I find it helpful to see 
 ### Singletons
 ###### [Style [Y040](#style-y040)]
 
-  - Services are instantiated with the `new` keyword, use `this` for public methods and variables. Since these are so similar to factories, use a factory instead for consistency.
+  - Services are instantiated with the `new` keyword, use `this` for public methods and variables.  Use service instead of factory for consistency except in the rare care where a factory must [create a primitive](https://docs.angularjs.org/guide/providers).
 
     Note: [All Angular services are singletons](https://docs.angularjs.org/guide/services). This means that there is only one instance of a given service per injector.
 
@@ -764,14 +731,10 @@ While this guide explains the *what*, *why* and *how*, I find it helpful to see 
   }
   ```
 
-**[Back to top](#table-of-contents)**
-
-## Factories
-
 ### Single Responsibility
 ###### [Style [Y050](#style-y050)]
 
-  - Factories should have a [single responsibility](https://en.wikipedia.org/wiki/Single_responsibility_principle), that is encapsulated by its context. Once a factory begins to exceed that singular purpose, a new factory should be created.
+  - Services should have a [single responsibility](https://en.wikipedia.org/wiki/Single_responsibility_principle), that is encapsulated by its context. Once a service begins to exceed that singular purpose, a new service should be created.
 
 ### Singletons
 ###### [Style [Y051](#style-y051)]
@@ -835,14 +798,14 @@ While this guide explains the *what*, *why* and *how*, I find it helpful to see 
 
   This way bindings are mirrored across the host object, primitive values cannot update alone using the revealing module pattern.
 
-    ![Factories Using "Above the Fold"](https://raw.githubusercontent.com/johnpapa/angular-styleguide/master/assets/above-the-fold-2.png)
+    ![Services Using "Above the Fold"](https://raw.githubusercontent.com/johnpapa/angular-styleguide/master/assets/above-the-fold-2.png)
 
 ### Function Declarations to Hide Implementation Details
 ###### [Style [Y053](#style-y053)]
 
-  - Use function declarations to hide implementation details. Keep your accessible members of the factory up top. Point those to function declarations that appears later in the file. For more details see [this post](http://www.johnpapa.net/angular-function-declarations-function-expressions-and-readable-code).
+  - Use function declarations to hide implementation details. Keep your accessible members of the service up top. Point those to function declarations that appears later in the file. For more details see [this post](http://www.johnpapa.net/angular-function-declarations-function-expressions-and-readable-code).
 
-    *Why?*: Placing accessible members at the top makes it easy to read and helps you instantly identify which functions of the factory you can access externally.
+    *Why?*: Placing accessible members at the top makes it easy to read and helps you instantly identify which functions of the service you can access externally.
 
     *Why?*: Placing the implementation details of a function later in the file moves that complexity out of view so you can see the important stuff up top.
 
@@ -942,7 +905,7 @@ While this guide explains the *what*, *why* and *how*, I find it helpful to see 
 ### Separate Data Calls
 ###### [Style [Y060](#style-y060)]
 
-  - Refactor logic for making data operations and interacting with data to a factory. Make data services responsible for XHR calls, local storage, stashing in memory, or any other data operations.
+  - Refactor logic for making data operations and interacting with data to a service. Make data services responsible for XHR calls, local storage, stashing in memory, or any other data operations.
 
     *Why?*: The controller's responsibility is for the presentation and gathering of information for the view. It should not care how it gets the data, just that it knows who to ask for it. Separating the data services moves the logic on how to get it to the data service, and lets the controller be simpler and more focused on the view.
 
@@ -956,7 +919,7 @@ While this guide explains the *what*, *why* and *how*, I find it helpful to see 
   // dataservice factory
   angular
       .module('app.core')
-      .factory('dataservice', dataservice);
+      .service('dataservice', dataservice);
 
   dataservice.$inject = ['$http', 'logger'];
 
@@ -1167,6 +1130,7 @@ While this guide explains the *what*, *why* and *how*, I find it helpful to see 
 ###### [Style [Y073](#style-y073)]
 
   - Provide a short, unique and descriptive directive prefix such as `acmeSalesCustomerInfo` which would be declared in HTML as `acme-sales-customer-info`.
+  - In Curve Hero all directives should be prefixed with `hero`.
 
     *Why?*: The unique short prefix identifies the directive's context and origin. For example a prefix of `cc-` may indicate that the directive is part of a CodeCamper app while `acme-` may indicate a directive for the Acme company.
 
@@ -1234,18 +1198,17 @@ While this guide explains the *what*, *why* and *how*, I find it helpful to see 
   }
   ```
 
-### Directives and ControllerAs
+### Components
 ###### [Style [Y075](#style-y075)]
 
-  - Use `controller as` syntax with a directive to be consistent with using `controller as` with view and controller pairings.
+  - Use the [component method of the module API](https://docs.angularjs.org/guide/component).
 
-    *Why?*: It makes sense and it's not difficult.
-
-    Note: The directive below demonstrates some of the ways you can use scope inside of link and directive controllers, using controllerAs. I in-lined the template just to keep it all in one place.
+    *Why?*: It enforces best practices for bindings, scope and controllerAs.
+    *Why?*: It provides the easiest upgrade path to Angular 2.
 
     Note: Regarding dependency injection, see [Manually Identify Dependencies](#manual-annotating-for-dependency-injection).
 
-    Note: Note that the directive's controller is outside the directive's closure. This style eliminates issues where the injection gets created as unreachable code after a `return`.
+    Note: Note that the component's controller is outside the component's closure. This style eliminates issues where the injection gets created as unreachable code after a `return`.
 
   ```html
   <div my-example max="77"></div>
@@ -1254,24 +1217,23 @@ While this guide explains the *what*, *why* and *how*, I find it helpful to see 
   ```javascript
   angular
       .module('app')
-      .directive('myExample', myExample);
+      .component('myExample', myExample);
 
   function myExample() {
-      var directive = {
+      var component = {
           restrict: 'EA',
           templateUrl: 'app/feature/example.directive.html',
-          scope: {
+          bindings: {
               max: '='
           },
           link: linkFunc,
           controller: ExampleController,
           // note: This would be 'ExampleController' (the exported controller name, as string)
           // if referring to a defined controller in its separate file.
-          controllerAs: 'vm',
-          bindToController: true // because the scope is isolated
+          controllerAs: 'vm'
       };
 
-      return directive;
+      return component;
 
       function linkFunc(scope, el, attr, ctrl) {
           console.log('LINK: scope.min = %s *** should be undefined', scope.min);
@@ -3301,6 +3263,7 @@ _tldr; Use this guide. Attributions are appreciated._
 
 ### Copyright
 
+Copyright (c) 20165 [Curve Dental](http://curvedental.com)
 Copyright (c) 2014-2016 [John Papa](http://johnpapa.net)
 
 ### (The MIT License)
