@@ -1,6 +1,19 @@
 # Curve Dental Angular Style Guide
 ## Purpose
 The purpose of this style guide is to provide guidance to Curve developers when building Angular applications.  It is based heavily on John Papa's [Angular Style Guide](https://github.com/johnpapa/angular-styleguide).  The deviations from John Papa's style are generally focused around preparing code for Angular 2.  In some cases they are purely opionions that must be followed for consistency in Curve's Angular applications.
+
+## Summary of Differences with John Papa's Guide
+
+The major differences between the Curve Dental guide and John Papa's guide are:
+- Prefer .service() instead of .factory()
+- Prefer .component() to .directive()
+- Prefer .then(callback).catch(errback) to .then(callback,errback) for Promises
+- Manual inject dependencies using .$inject()
+- Suffix all Service names with 'Service'
+- Always use ng-strict-di in ngApp directives
+
+See the specific sections for more information.
+
 ## Table of Contents
 
   1. [Single Responsibility](#single-responsibility)
