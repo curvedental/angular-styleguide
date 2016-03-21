@@ -362,14 +362,14 @@ See the specific sections for more information.
   }
   ```
 
-### controllerAs with vm
+### controllerAs with $ctrl
 ###### [Style [Y032](#style-y032)]
 
-  - Use a capture variable for `this` when using the `controllerAs` syntax. Use the variable name 'vm', which stands for ViewModel, for conistency.
+  - Use a capture variable for `this` when using the `controllerAs` syntax. Use the variable name '$ctrl' for consistency with the default value for an Angular component recipe.
 
   *Why?*: The `this` keyword is contextual and when used within a function inside a controller may change its context. Capturing the context of `this` avoids encountering this problem.
   
-  *Why?*: The `vm` must appear before every bound variable in the view's template.  A longer variable name may be more expressive but it quickly reduces the readability of the template with boilerplate.  In Angular 2 this problem is resovled as the `vm` is no longer required in controllers or templates.
+  *Why?*: The `$ctrl` must appear before every bound variable in the view's template.  A longer variable name may be more expressive but it quickly reduces the readability of the template with boilerplate.  In Angular 2 this problem is resolved as the `$ctrl` is no longer required in controllers or templates.
 
   ```javascript
   /* avoid */
