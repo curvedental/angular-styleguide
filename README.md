@@ -694,7 +694,7 @@ See the specific sections for more information.
           .when('/avengers', {
               templateUrl: 'avengers.html',
               controller: 'Avengers',
-              controllerAs: 'vm'
+              controllerAs: '$ctrl'
           });
   }
   ```
@@ -913,18 +913,19 @@ See the specific sections for more information.
 
 **[Back to top](#table-of-contents)**
 
-## Data Services
+## Resources
 
 ### Separate Data Calls
 ###### [Style [Y060](#style-y060)]
 
-  - Refactor logic for making data operations and interacting with data to a service. Make data services responsible for XHR calls, local storage, stashing in memory, or any other data operations.
+  - Refactor logic for making data operations and interacting with data to a service. Make services responsible for XHR calls, utilize resources, local storage, stashing in memory, or any other data operations.
+  - Simple objects should make use of a $resource and a restful API. More complicated interactions should make use of the HttpDataService which deals with the HTTP layer in a uniform manner.
 
-    *Why?*: The controller's responsibility is for the presentation and gathering of information for the view. It should not care how it gets the data, just that it knows who to ask for it. Separating the data services moves the logic on how to get it to the data service, and lets the controller be simpler and more focused on the view.
+    *Why?*: The controller's responsibility is for the presentation and gathering of information for the view. It should not care how it gets the data, just that it knows who to ask for it. Separating the services moves the logic on how to get it to the service, and lets the controller be simpler and more focused on the view.
 
-    *Why?*: This makes it easier to test (mock or real) the data calls when testing a controller that uses a data service.
+    *Why?*: This makes it easier to test (mock or real) the data calls when testing a controller that uses a service.
 
-    *Why?*: Data service implementation may have very specific code to handle the data repository. This may include headers, how to talk to the data, or other services such as `$http`. Separating the logic into a data service encapsulates this logic in a single place hiding the implementation from the outside consumers (perhaps a controller), also making it easier to change the implementation.
+    *Why?*: Service implementation may have very specific code to handle the data repository. This may include headers, how to talk to the data, or other services such as `$http`. Separating the logic into a service encapsulates this logic in a single place hiding the implementation from the outside consumers (perhaps a controller), also making it easier to change the implementation. Additionally, it requires less effort to maintain because the logic for interacting with the service is in a single location.
 
   ```javascript
   /* recommended */
@@ -932,11 +933,10 @@ See the specific sections for more information.
   // dataservice factory
   angular
       .module('app.core')
-      .service('dataservice', dataservice);
+      .service('myService', MyService);
+ 
 
-  dataservice.$inject = ['$http', 'logger'];
-
-  function dataservice($http, logger) {
+  function MyService($http, logger) {
       return {
           getAvengers: getAvengers
       };
@@ -955,46 +955,14 @@ See the specific sections for more information.
           }
       }
   }
-  ```
-
-    Note: The data service is called from consumers, such as a controller, hiding the implementation from the consumers, as shown below.
-
-  ```javascript
-  /* recommended */
-
-  // controller calling the dataservice factory
-  angular
-      .module('app.avengers')
-      .controller('AvengersController', AvengersController);
-
-  AvengersController.$inject = ['dataservice', 'logger'];
-
-  function AvengersController(dataservice, logger) {
-      var vm = this;
-      vm.avengers = [];
-
-      activate();
-
-      function activate() {
-          return getAvengers().then(function() {
-              logger.info('Activated Avengers View');
-          });
-      }
-
-      function getAvengers() {
-          return dataservice.getAvengers()
-              .then(function(data) {
-                  vm.avengers = data;
-                  return vm.avengers;
-              });
-      }
-  }
+  
+  MyService.$inject = ['$http', 'logger'];
   ```
 
 ### Return a Promise from Data Calls
 ###### [Style [Y061](#style-y061)]
 
-  - When calling a data service that returns a promise such as `$http`, return a promise in your calling function too.
+  - When calling a service function that returns a promise such as `$http`, return a promise in your calling function too.
 
     *Why?*: You can chain the promises together and take further action after the data call completes and resolves or rejects the promise.
 
@@ -1218,6 +1186,11 @@ See the specific sections for more information.
 
     *Why?*: It enforces best practices for bindings, scope and controllerAs.
     *Why?*: It provides the easiest upgrade path to Angular 2.
+    
+  - Use one-time or one-way binding instead of two-way binding.
+
+    *Why?*: It provides large performance gains to keep the UI responsive.
+    *Why?*: It provides the easiest upgrade path to Angular 2 which doesn't support two-way binding.
 
     Note: Regarding dependency injection, see [Manually Identify Dependencies](#manual-annotating-for-dependency-injection).
 
@@ -1234,26 +1207,16 @@ See the specific sections for more information.
 
   function myExample() {
       var component = {
-          restrict: 'EA',
-          templateUrl: 'app/feature/example.component.html',
+          templateUrl: 'app/feature/example.html',
           bindings: {
-              max: '='
+              max: '<' // One-time binding uses '<' instead of '='
           },
-          link: linkFunc,
           controller: ExampleController,
           // note: This would be 'ExampleController' (the exported controller name, as string)
           // if referring to a defined controller in its separate file.
-          controllerAs: 'vm'
       };
 
       return component;
-
-      function linkFunc(scope, el, attr, ctrl) {
-          console.log('LINK: scope.min = %s *** should be undefined', scope.min);
-          console.log('LINK: scope.max = %s *** should be undefined', scope.max);
-          console.log('LINK: scope.vm.min = %s', scope.vm.min);
-          console.log('LINK: scope.vm.max = %s', scope.vm.max);
-      }
   }
 
   ExampleController.$inject = ['$scope'];
@@ -1381,7 +1344,7 @@ See the specific sections for more information.
           .when('/avengers', {
               templateUrl: 'avengers.html',
               controller: 'AvengersController',
-              controllerAs: 'vm',
+              controllerAs: '$ctrl',
               resolve: {
                   moviesPrepService: function(movieService) {
                       return movieService.getMovies();
@@ -1417,7 +1380,7 @@ See the specific sections for more information.
           .when('/avengers', {
               templateUrl: 'avengers.html',
               controller: 'AvengersController',
-              controllerAs: 'vm',
+              controllerAs: '$ctrl',
               resolve: {
                   moviesPrepService: moviesPrepService
               }
@@ -1563,7 +1526,7 @@ See the specific sections for more information.
     function outer() {
         var ddo = {
             controller: DashboardPanelController,
-            controllerAs: 'vm'
+            controllerAs: '$ctrl'
         };
         return ddo;
 
@@ -1579,7 +1542,7 @@ See the specific sections for more information.
     function outer() {
         var ddo = {
             controller: DashboardPanelController,
-            controllerAs: 'vm'
+            controllerAs: '$ctrl'
         };
         return ddo;
     }
@@ -1605,7 +1568,7 @@ See the specific sections for more information.
             .when('/avengers', {
                 templateUrl: 'avengers.html',
                 controller: 'AvengersController',
-                controllerAs: 'vm',
+                controllerAs: '$ctrl',
                 resolve: {
                     moviesPrepService: moviesPrepService
                 }
