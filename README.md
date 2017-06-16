@@ -9,6 +9,7 @@ The major differences between the Curve Dental guide and John Papa's guide are:
 - Prefer .component() to .directive()
 - Prefer .then(callback).catch(errback) to .then(callback,errback) for Promises
 - Manual inject dependencies using .$inject()
+- Explicitly state dependency injection ordering rules
 - Suffix all Service names with 'Service'
 - Always use ng-strict-di in ngApp directives
 
@@ -1580,6 +1581,40 @@ See the specific sections for more information.
         return movieService.getMovies();
     }
     ```
+
+### Annotation Order
+###### [Style [Y093](#style-y093)]
+
+  - Inject Angular's providers before our own custom ones
+
+    *Why?*: Considered good practice across the Angular community (see [this blog post](https://toddmotto.com/opinionated-angular-js-styleguide-for-teams/#annotation-order) by the author of one of the major Angular style guides)
+
+    *Why?*: Makes looking for a specific dependency a little faster
+
+    ```javascript
+    /* avoid */
+    angular
+        .module('app')
+        .controller('DashboardController', DashboardController);
+
+    DashboardController.$inject = ['common', '$location', '$routeParams', 'dataservice'];
+
+    function DashboardController(common, $location, $routeParams, dataservice) {
+    }
+    ```
+
+    ```javascript
+    /* recommended */
+    angular
+        .module('app')
+        .controller('DashboardController', DashboardController);
+
+    DashboardController.$inject = ['$location', '$routeParams', 'common', 'dataservice'];
+
+    function DashboardController($location, $routeParams, common, dataservice) {
+    }
+    ```
+
 
 **[Back to top](#table-of-contents)**
 
